@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privé Notities</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial; margin: 20px; max-width: 700px; }
+input, textarea, button { width: 100%; margin-top: 8px; padding: 10px; }
+.practice { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Mijn Praktijken</h2>
+
+<input id="practiceName" placeholder="Nieuwe praktijk">
+<button onclick="addPractice()">Toevoegen</button>
+
+<div id="practices"></div>
+
+<script>
+const supabase = supabase.createClient(
+  "https://riyttjfnbrskgoeecqxk.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpeXR0amZuYnJza2dvZWVjcXhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NDk1MTcsImV4cCI6MjA4NDEyNTUxN30.98aiVHjomAEuhTvTQ9Mgo_6yTcttIjNHUY1SqUoE0Mo"
+);
+
+async function loadPractices() {
+  const { data } = await supabase.from("practices").select("*");
+  const container = document.getElementById("practices");
+  container.innerHTML = "";
+
+  for (let p of data) {
+    const div = document.createElement("div");
+    div.className = "practice";
+    div.innerHTML = `
+      <h3>${p.name}</h3>
+      <textarea placeholder="Notities..." oninput="saveNote('${p.id}', this.value)"></textarea>
+    `;
+    container.appendChild(div);
+
+    const note = await supabase.from("notes").select("*").eq("practice_id", p.id).single();
+    if (note.data) div.querySelector("textarea").value = note.data.content;
+  }
+}
+
+async function addPractice() {
+  const name = document.getElementById("practiceName").value;
+  if (!name) return;
+  await supabase.from("practices").insert({ name });
+  document.getElementById("practiceName").value = "";
+  loadPractices();
+}
+
+async function saveNote(practiceId, content) {
+  const existing = await supabase.from("notes").select("*").eq("practice_id", practiceId).single();
+  if (existing.data) {
+    await supabase.from("notes").update({ content }).eq("practice_id", practiceId);
+  } else {
+    await supabase.from("notes").insert({ practice_id: practiceId, content });
+  }
+}
+
+loadPractices();
+</script>
+</body>
+</html>

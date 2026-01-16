@@ -23,7 +23,18 @@ input, textarea, button { width: 100%; margin-top: 8px; padding: 10px; }
 </html>
 
 <div id="practices"></div>
+<script>
+const tekstvak = document.getElementById('notitie');
 
+// Laad opgeslagen tekst bij het openen van de pagina
+tekstvak.value = localStorage.getItem('mijnNotitie') || '';
+
+// Functie om op te slaan
+function opslaan() {
+    localStorage.setItem('mijnNotitie', tekstvak.value);
+    alert('Notitie opgeslagen!');
+}
+</script>
 <script>
 const supabase = supabase.createClient(
   "https://riyttjfnbrskgoeecqxk.supabase.co",
@@ -70,4 +81,5 @@ loadPractices();
 </script>
 </body>
 </html>
+
 
